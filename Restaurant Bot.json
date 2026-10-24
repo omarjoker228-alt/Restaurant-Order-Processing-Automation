@@ -1,0 +1,1034 @@
+{
+  "name": "Restaurant Bot",
+  "nodes": [
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{\"ok\":true}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        -2784,
+        1152
+      ],
+      "id": "654dea60-9886-4296-9797-b10425fe6ce0",
+      "name": "Reply 200 (ready)1"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{\"ok\":true}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        -2752,
+        1456
+      ],
+      "id": "1b8c5e28-c941-496e-a8bd-135361274f10",
+      "name": "Reply 200 (cancelled)1"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "res-ready",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -2992,
+        1136
+      ],
+      "id": "c896da4a-5a88-4a40-b7cc-67ce43bd7275",
+      "name": "Website event (ready)2",
+      "webhookId": "a9aafae7-271a-4ce2-bc9f-7d8eca58b097"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "res-cancelled",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -3008,
+        1472
+      ],
+      "id": "9fc07722-a1de-47c4-a8a4-942c370d70e2",
+      "name": "Website event cancelled2",
+      "webhookId": "20e922be-cbc0-4901-b110-180428e8d6d4"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "res-cancel-request",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -3008,
+        1840
+      ],
+      "id": "3f362028-dd0a-4cef-99dd-7bb3ec5394e9",
+      "name": "Website event cancel request",
+      "webhookId": "74dab880-5230-47d4-b52c-82cb612909e2",
+      "notes": "Events on this path: order.cancel_requested (customer) + order.cancelled_by_owner (admin cancel)."
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{\"ok\":true}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        -2704,
+        1840
+      ],
+      "id": "24238b02-7f87-405a-b1f5-bae03ff01052",
+      "name": "Reply 200 (cancel request)"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "res-created",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -3040,
+        736
+      ],
+      "id": "8e20194e-c014-4d49-895f-dbb970802630",
+      "name": "order.created",
+      "webhookId": "f5233fa0-3d99-4276-acbf-e3b380f7a2fe"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{\"ok\":true}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        -2800,
+        752
+      ],
+      "id": "fd4ed6b1-9d19-46e4-8987-64c81cc13d5f",
+      "name": "Reply 200 (created)"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "m1",
+              "leftValue": "={{ $json.mediaType }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -1680,
+        1200
+      ],
+      "id": "408c2cef-4496-4406-9e66-cd5c990318f8",
+      "name": "Is Media Message?",
+      "notes": "TRUE = رسالة فيها ميديا (صوت/صورة/فيديو/ملف) -> فرع الميديا. FALSE = نص -> AI Agent على طول."
+    },
+    {
+      "parameters": {
+        "descriptionType": "manual",
+        "toolDescription": "Get restaurant menu items: dish names, prices, descriptions, availability.",
+        "operation": "getAll",
+        "tableId": "menu_items",
+        "returnAll": true
+      },
+      "type": "n8n-nodes-base.supabaseTool",
+      "typeVersion": 1,
+      "position": [
+        320,
+        1568
+      ],
+      "id": "45081007-8e59-4e30-9170-536270a77874",
+      "name": "menu_items",
+      "credentials": {
+        "supabaseApi": {
+          "id": "0UE40vtM0h868cTk",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "descriptionType": "manual",
+        "toolDescription": "Get menu categories and food sections.",
+        "operation": "getAll",
+        "tableId": "categories",
+        "returnAll": true
+      },
+      "type": "n8n-nodes-base.supabaseTool",
+      "typeVersion": 1,
+      "position": [
+        512,
+        1568
+      ],
+      "id": "f6e7ac3d-a809-4879-9549-95de22dea1ce",
+      "name": "menu_categories",
+      "credentials": {
+        "supabaseApi": {
+          "id": "0UE40vtM0h868cTk",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "descriptionType": "manual",
+        "toolDescription": "Get the status timeline of ONE order. Only use an order_id returned by the orders tool.",
+        "operation": "getAll",
+        "tableId": "order_status_history",
+        "matchType": "allFilters",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "order_id",
+              "condition": "eq",
+              "keyValue": "={{ $fromAI('order_id', 'The order id returned by the orders tool', 'string') }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabaseTool",
+      "typeVersion": 1,
+      "position": [
+        864,
+        1568
+      ],
+      "id": "22dc858e-e73c-4ec1-8f25-62c0bf8997f9",
+      "name": "order_status_history",
+      "credentials": {
+        "supabaseApi": {
+          "id": "0UE40vtM0h868cTk",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://host.docker.internal:8080/chat/getBase64FromMediaMessage/whatsapp_agent",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ message: { key: { id: $json.messageId } }, convertToMp4: false }) }}",
+        "options": {
+          "timeout": 60000
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -1440,
+        672
+      ],
+      "id": "3bc3ec73-149b-4c0f-93d5-ffb3062e7e19",
+      "name": "Get Media Base64 (Evolution)1",
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 2000,
+      "disabled": true,
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "h1",
+              "leftValue": "={{ $json.base64 }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -1184,
+        720
+      ],
+      "id": "5a2adbfc-ced3-43f7-bc4d-0cd8f5b1816f",
+      "name": "Has Media?1"
+    },
+    {
+      "parameters": {
+        "operation": "toBinary",
+        "sourceProperty": "base64",
+        "options": {
+          "fileName": "={{ $json.fileName || 'media' }}",
+          "mimeType": "={{ ($json.mimetype || 'application/octet-stream').split(';')[0] }}"
+        }
+      },
+      "type": "n8n-nodes-base.convertToFile",
+      "typeVersion": 1.1,
+      "position": [
+        -944,
+        592
+      ],
+      "id": "7c202104-b66e-4d9a-9259-a0ee0f723ca1",
+      "name": "Base64 to Binary1"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "a1",
+              "leftValue": "={{ $binary.data.mimeType }}",
+              "rightValue": "audio",
+              "operator": {
+                "type": "string",
+                "operation": "startsWith"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -704,
+        592
+      ],
+      "id": "6c8e4f2d-b057-4a83-8f79-a4670bd62fa6",
+      "name": "Is Audio?1"
+    },
+    {
+      "parameters": {
+        "resource": "audio",
+        "operation": "analyze",
+        "modelId": {
+          "__rl": true,
+          "value": "models/gemini-3.5-flash-lite",
+          "mode": "list",
+          "cachedResultName": "models/gemini-3.5-flash-lite"
+        },
+        "text": "اكتب بالظبط الكلام اللي في المقطع الصوتي ده بنفس اللغة واللهجة (غالبا مصري). اكتب النص فقط من غير أي شرح أو مقدمة.",
+        "inputType": "binary",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.googleGemini",
+      "typeVersion": 1.2,
+      "position": [
+        -480,
+        480
+      ],
+      "id": "55b37108-e1eb-4540-85d4-b7938421256e",
+      "name": "Gemini Transcribe Voice1",
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 4000,
+      "credentials": {
+        "googlePalmApi": {
+          "id": "ejcKCYh2Wp2HABul",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "resource": "image",
+        "operation": "analyze",
+        "modelId": {
+          "__rl": true,
+          "value": "models/gemini-3.5-flash-lite",
+          "mode": "list",
+          "cachedResultName": "models/gemini-3.5-flash-lite"
+        },
+        "text": "الصورة دي مبعوتة من عميل لمطعم. اكتب بالعربي: 1) الأكل أو المنتج الظاهر لو في. 2) أي نص مكتوب في الصورة بالظبط. 3) وصف مختصر جدا للمحتوى. ماتخمنش لو مش متأكد (اكتب 'مش واضح'). اكتب النتيجة فقط من غير مقدمة.",
+        "inputType": "binary",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.googleGemini",
+      "typeVersion": 1.2,
+      "position": [
+        -464,
+        736
+      ],
+      "id": "ad3559f2-3c91-4922-93ed-091c6a6d5289",
+      "name": "Gemini Analyze Image1",
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 4000,
+      "credentials": {
+        "googlePalmApi": {
+          "id": "ejcKCYh2Wp2HABul",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Contract out: { ok: boolean, kind: 'audio'|'image', text: string, error?: string }\nconst mt = $('Extract Message').first().json.mediaType;\nconst kind = mt === 'audioMessage' ? 'audio' : 'image';\nconst j = $input.first().json ?? {};\nconst text = String(\n  j.content?.parts?.map((p) => p.text ?? '').join('\\n') || j.text || j.output || ''\n).replace(/<think>[\\s\\S]*?<\\/think>/gi, '').trim();\nif (!text) return [{ json: { ok: false, kind, text: '', error: j.error?.message || j.error || 'empty_result' } }];\nreturn [{ json: { ok: true, kind, text } }];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -224,
+        624
+      ],
+      "id": "fe813d80-baac-4286-a0e4-75642a9bb434",
+      "name": "Return"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "t1",
+              "name": "text",
+              "value": "={{ $json.ok ? (($json.kind === 'audio' ? '[رسالة صوتية من العميل] ' : '[صورة من العميل - وصف تلقائي] ') + $json.text + ($('Extract Message').first().json.text ? '\\nتعليق العميل: ' + $('Extract Message').first().json.text : '')) : ('[العميل بعت ' + ($json.kind === 'audio' ? 'رسالة صوتية' : 'صورة') + ' ومقدرناش نقراها]') }}",
+              "type": "string"
+            },
+            {
+              "id": "t2",
+              "name": "number",
+              "value": "={{ $('Extract Message').first().json.number }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        16,
+        736
+      ],
+      "id": "c924338d-51a2-41d1-b7ca-44a305629561",
+      "name": "Compose Media Text"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.text }}",
+        "options": {
+          "systemMessage": "انت مساعد مطعم على واتساب. رد باللهجة المصرية وباختصار. لو العميل عايز يطلب أو يشوف المنيو ابعتله اللينك: https://restourant21.vercel.app/ . ماتخترعش أسعار أو أطباق أو تفاصيل طلبات. لو مش عارف الإجابة قوله إن الموظف هيرد عليه.\nالرد يكون مثلا وعليكم السلام اتشرفنا بي حضرتك لو حابب تطلب من عندنا دا لينك المنيو\nبالها والشفا\n",
+          "maxIterations": 8
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        336,
+        1168
+      ],
+      "id": "83921634-e6db-4401-91a9-02c25c8ea4e1",
+      "name": "AI Agent",
+      "retryOnFail": true
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [
+        -32,
+        1568
+      ],
+      "id": "4157d35e-6c93-4dd2-90b5-821886e0d8b1",
+      "name": "OpenRouter Chat Model1",
+      "credentials": {
+        "openRouterApi": {
+          "id": "HDc9tWOxZcOz8InN",
+          "name": "OpenRouter account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $json.number }}",
+        "contextWindowLength": 10
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.4,
+      "position": [
+        144,
+        1568
+      ],
+      "id": "5ae6b2ef-40d0-4cd3-a32d-95b413b3d202",
+      "name": "Simple Memory1"
+    },
+    {
+      "parameters": {
+        "descriptionType": "manual",
+        "toolDescription": "Get the orders of the customer currently chatting (already filtered by the customer's phone number). Use for order status and details.",
+        "operation": "getAll",
+        "tableId": "orders",
+        "limit": 20,
+        "matchType": "allFilters",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "customer_phone",
+              "condition": "like",
+              "keyValue": "={{ '*' + $('Extract Message').first().json.phone.slice(-10) }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabaseTool",
+      "typeVersion": 1,
+      "position": [
+        688,
+        1568
+      ],
+      "id": "056ff180-7e27-499e-b569-1774080b0eed",
+      "name": "orders1",
+      "credentials": {
+        "supabaseApi": {
+          "id": "0UE40vtM0h868cTk",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// استخراج موحّد من payload بتاع Evolution API\nconst src = $input.first().json || {};\nconst body = src.body || src;\nconst data = body.data || {};\nconst key = data.key || {};\nconst msg = data.message || {};\nconst ext = msg.extendedTextMessage || {};\n\nconst text = String(\n  msg.conversation ||\n  ext.text ||\n  msg.imageMessage?.caption ||\n  msg.videoMessage?.caption ||\n  msg.documentMessage?.caption ||\n  ''\n).trim();\n\nlet mediaType = '';\nif (msg.audioMessage) mediaType = 'audioMessage';\nelse if (msg.imageMessage) mediaType = 'imageMessage';\nelse if (msg.videoMessage) mediaType = 'videoMessage';\nelse if (msg.documentMessage) mediaType = 'documentMessage';\n\nconst jid = String(key.remoteJid || data.sender || body.sender || '');\nconst phone = jid.split('@')[0].split(':')[0].replace(/\\D/g, '');\n\nreturn [{\n  json: {\n    text: text,\n    number: jid,\n    phone: phone,\n    messageId: key.id || '',\n    mediaType: mediaType,\n    pushName: data.pushName || '',\n  },\n}];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1856,
+        880
+      ],
+      "id": "4e02200d-5599-45f6-844c-0ceb04d1b2a6",
+      "name": "Extract Message",
+      "notesInFlow": false,
+      "notes": "In: Evolution payload. Out: { text, number (jid), phone (digits), messageId, mediaType, pushName }."
+    },
+    {
+      "parameters": {
+        "content": "## 💬 ٥) شات واتساب — استقبال\n- **Webhook** → POST `/whatsapp` من Evolution لما رسالة توصل.\n- **Extract Message2** → يطلع النص والرقم من الـ payload (نسخة ناقصة، شوف الإصلاحات تحت).\n- **Is Media Message?** → صوت أو صورة = فرع الميديا، نص = AI Agent على طول.",
+        "height": 900,
+        "width": 880,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -2352,
+        592
+      ],
+      "id": "c45a66ff-626b-49b7-8a05-d51e912ae34d",
+      "name": "Sticky - 5a Chat Receive"
+    },
+    {
+      "parameters": {
+        "content": "## 🎙️ ٥ب) ميديا (صوت / صورة)\n- **Get Media Base64 (Evolution)1** → يجيب الملف من Evolution.\n- **Has Media?1** → الملف موجود يكمل، مش موجود يروح Return.\n- **Base64 to Binary1** → يحول Base64 لملف.\n- **Is Audio?1** → صوت يروح Gemini Transcribe، غير كده يروح Gemini Analyze Image.\n- **Gemini Transcribe Voice1** → يفرّغ الصوت لنص.\n- **Gemini Analyze Image1** → يوصف الصورة.\n- **Return** → يوحّد الخرج `{ok, kind, text}`.\n- **Compose Media Text** → يركّب النص النهائي اللي رايح للـ AI Agent.",
+        "height": 700,
+        "width": 1760
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -1472,
+        400
+      ],
+      "id": "367826b2-5c52-4389-8445-bb7b7351ba96",
+      "name": "Sticky - 5b Media"
+    },
+    {
+      "parameters": {
+        "content": "## 🤖 ٥ج) الرد الذكي\n- **AI Agent** → يرد على العميل بالمصري ويبعت لينك المنيو.\n- **OpenRouter Chat Model1** → النموذج اللي بيفكر.\n- **Simple Memory1** → يفتكر آخر 10 رسايل لكل رقم.\n- **menu_items / menu_categories / orders1 / order_status_history** → أدوات Supabase بيقرا منها المنيو والطلبات.\n- **Code in JavaScript4** → ملوش لازمة (بيدور على تليفون جوه رد الـ AI). امسحه ووصّل AI Agent على Send مباشرة.\n- **Send via Evolution API** → يبعت رد الـ AI للعميل.",
+        "height": 745,
+        "width": 1280,
+        "color": 7
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -112,
+        1152
+      ],
+      "id": "7b55ddc7-27bc-4228-b0c8-369982b15ccb",
+      "name": "Sticky - 5c AI Reply"
+    },
+    {
+      "parameters": {
+        "updates": [
+          "message"
+        ],
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.5,
+      "position": [
+        -2160,
+        1072
+      ],
+      "id": "becdd27e-9ea0-44ae-9f09-5f78d5e77266",
+      "name": "Telegram Trigger",
+      "webhookId": "66b8fb5a-de9e-4cde-86e8-1e23d8ab18e8",
+      "credentials": {
+        "telegramApi": {
+          "id": "yzs2BUH8IWE55RL6",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        832,
+        1184
+      ],
+      "id": "bde4291d-e49d-47af-9a21-646c3092320b",
+      "name": "Send a text message",
+      "webhookId": "e58320cf-fc22-4296-b31d-df1ad24c37d8",
+      "credentials": {
+        "telegramApi": {
+          "id": "yzs2BUH8IWE55RL6",
+          "name": "Telegram account"
+        }
+      },
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "whatsapp",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -2160,
+        800
+      ],
+      "id": "b79c09b9-4c6c-46b2-bf39-54cc10b6eb1c",
+      "name": "Webhook",
+      "webhookId": "bde6a7ce-b948-481d-99ea-4cb1482ee280"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://host.docker.internal:8080/message/sendText/whatsapp_agent",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "42f2a07a067876d4122e81115dd2e3f94446c9f0ffa08d99a548e945c30beb81"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "number",
+              "value": "={{ $('Extract Message').first().json.number }}"
+            },
+            {
+              "name": "text",
+              "value": "={{ $json.output }}"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 30000
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        992,
+        1408
+      ],
+      "id": "ca04116f-5a76-4c1f-b24c-d77f83b027e9",
+      "name": "Send via Evolution API",
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 2000
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "order.created": {
+      "main": [
+        [
+          {
+            "node": "Reply 200 (created)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Reply 200 (created)": {
+      "main": [
+        []
+      ]
+    },
+    "Website event (ready)2": {
+      "main": [
+        [
+          {
+            "node": "Reply 200 (ready)1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Reply 200 (ready)1": {
+      "main": [
+        []
+      ]
+    },
+    "Website event cancelled2": {
+      "main": [
+        [
+          {
+            "node": "Reply 200 (cancelled)1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Reply 200 (cancelled)1": {
+      "main": [
+        []
+      ]
+    },
+    "Website event cancel request": {
+      "main": [
+        [
+          {
+            "node": "Reply 200 (cancel request)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Reply 200 (cancel request)": {
+      "main": [
+        []
+      ]
+    },
+    "Extract Message": {
+      "main": [
+        [
+          {
+            "node": "Is Media Message?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Is Media Message?": {
+      "main": [
+        [
+          {
+            "node": "Get Media Base64 (Evolution)1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Media Base64 (Evolution)1": {
+      "main": [
+        [
+          {
+            "node": "Has Media?1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Has Media?1": {
+      "main": [
+        [
+          {
+            "node": "Base64 to Binary1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Return",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Base64 to Binary1": {
+      "main": [
+        [
+          {
+            "node": "Is Audio?1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Is Audio?1": {
+      "main": [
+        [
+          {
+            "node": "Gemini Transcribe Voice1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Gemini Analyze Image1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gemini Transcribe Voice1": {
+      "main": [
+        [
+          {
+            "node": "Return",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gemini Analyze Image1": {
+      "main": [
+        [
+          {
+            "node": "Return",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Return": {
+      "main": [
+        [
+          {
+            "node": "Compose Media Text",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Compose Media Text": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Send a text message",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Send via Evolution API",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenRouter Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory1": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "menu_items": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "menu_categories": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "order_status_history": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "orders1": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Telegram Trigger": {
+      "main": [
+        [
+          {
+            "node": "Extract Message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Extract Message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "ff40e361-a8ac-46b8-b988-ee7c765ace58",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "db541523918dd7ef35d00f8a2299dadbc09ae95a8c9c3342c81d710a2c01544a"
+  },
+  "nodeGroups": [],
+  "id": "MifSn9uh5Ssm3mfQ",
+  "tags": []
+}
